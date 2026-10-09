@@ -1,0 +1,8 @@
+# Browser build downloaded by the updater, and its working folders
+/app/
+/app.stage/
+/app.backup/
+/app.download/
+
+# Browser profile
+/data/
