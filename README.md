@@ -57,6 +57,15 @@ Below is a breakdown of the core files and their purpose in this environment.
 - **Dark Mode by Default**: Forced dark mode and WebUI dark mode enabled out of the box.
 
 ## Getting Started
+
+### Quick start (recommended)
+1. Download **`Cromite-Portable.zip`** from the [latest release](https://github.com/skonester/cromite-portable/releases/latest) and extract the whole folder.
+2. Run `Cromite-Updater.exe`. It downloads Cromite into `\app` and starts the browser.
+3. After that, launch with `Cromite Portable.exe`, and run the updater again whenever you want to check for a newer build.
+
+`Cromite-Updater.exe` on its own only updates an existing folder, so it has to sit next to `Cromite Portable.exe`.
+
+### Manual setup
 1. **Initialize**: Run `Update-Cromite.ps1` and select `[1] Check for Updates` to download the browser.
 2. **Setup**: Select `[3] Setup Portable Environment` to clean legacy files and prepare the structure.
 3. **Build**: Select `[4] Rebuild Native Launcher` to compile your custom branded `.exe`.

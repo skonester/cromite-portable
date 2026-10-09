@@ -6,3 +6,6 @@
 
 # Browser profile
 /data/
+
+# Output of .github/scripts/package.ps1
+/dist/

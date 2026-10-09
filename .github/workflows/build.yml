@@ -1,0 +1,73 @@
+name: Build Cromite Portable
+
+# Every push to master and every pull request: test the updater, build the
+# launcher and updater, and attach the portable zip to the run as an artifact.
+#
+# Publishing a release is manual: Actions tab -> "Build Cromite Portable" ->
+# "Run workflow".
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Publish a GitHub release
+        type: boolean
+        default: true
+
+permissions:
+  contents: write # needed to create the release
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: updater
+
+      - name: Test updater
+        working-directory: updater
+        run: cargo test --locked
+
+      - name: Build updater
+        working-directory: updater
+        run: cargo build --release --locked
+
+      - name: Build launcher and package
+        shell: pwsh
+        run: ./.github/scripts/package.ps1 -UpdaterExe updater/target/release/Cromite-Updater.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Cromite-Portable-build${{ github.run_number }}
+          path: |
+            dist/Cromite-Portable.zip
+            dist/Cromite-Updater.exe
+            dist/SHA256SUMS.txt
+
+      - name: Publish release
+        if: github.event_name == 'workflow_dispatch' && inputs.release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(grep -m1 '^version' updater/Cargo.toml | cut -d'"' -f2)
+          TAG="v$VERSION-build${{ github.run_number }}"
+          cat > notes.md <<EOF
+          **Download \`Cromite-Portable.zip\`**, extract the whole folder, then run \`Cromite-Updater.exe\`.
+          On first run it downloads Cromite into \`app\\\` and starts the browser.
+
+          \`Cromite-Updater.exe\` on its own is only for updating an existing Cromite Portable folder:
+          put it next to \`Cromite Portable.exe\`.
+
+          Built from ${{ github.sha }}.
+          EOF
+          gh release create "$TAG" \
+            dist/Cromite-Portable.zip dist/Cromite-Updater.exe dist/SHA256SUMS.txt \
+            --target "${{ github.sha }}" \
+            --title "Cromite Portable (build ${{ github.run_number }})" \
+            --notes-file notes.md
